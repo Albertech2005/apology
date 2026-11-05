@@ -401,9 +401,6 @@
       return;
     }
 
-    // Get signature as image
-    const signatureImage = sigPad.toDataURL('image/png');
-
     submitBtn.disabled = true;
     submitBtn.textContent = '⏳ Sending...';
     document.getElementById('errorBanner').style.display = 'none';
@@ -412,7 +409,7 @@
       await emailjs.send('service_omaa2z1', 'template_h392cjo', {
         apology_letter:  letter,
         date:            dateStr + ' at ' + timeStr,
-        signature_image: signatureImage,
+        signature_status: '✅ Signature was physically drawn and confirmed on the document.',
         to_email:        'albube2020@gmail.com'
       });
 
