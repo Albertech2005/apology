@@ -357,12 +357,16 @@
   });
 
   function resizeCanvas() {
+    const data = sigPad.toData(); // save existing signature
     const ratio = Math.max(window.devicePixelRatio || 1, 1);
     const rect = canvas.parentElement.getBoundingClientRect();
     canvas.width = rect.width * ratio;
     canvas.height = 180 * ratio;
     canvas.getContext('2d').scale(ratio, ratio);
     sigPad.clear();
+    if (data && data.length > 0) {
+      sigPad.fromData(data); // restore signature after resize
+    }
   }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
@@ -422,7 +426,13 @@
       console.error('EmailJS error:', err);
       submitBtn.disabled = false;
       submitBtn.textContent = '💌 Submit & Seal This Promise';
-      document.getElementById('errorBanner').style.display = 'block';
+      const banner = document.getElementById('errorBanner');
+      if (err && (err.message || '').includes('fetch')) {
+        banner.textContent = '⚠️ Network blocked the request — please disable your ad blocker for this page, then try again.';
+      } else {
+        banner.textContent = '⚠️ Something went wrong (' + (err.text || err.message || 'unknown error') + '). Please try again.';
+      }
+      banner.style.display = 'block';
     }
   }
 </script>
