@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>A Promise & An Apology</title>
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -227,6 +228,11 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(192,57,43,0.45);
     }
+    .btn-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
 
     /* ── Success Banner ── */
     .success-banner {
@@ -240,6 +246,18 @@
     }
     .success-banner h3 { color: #27ae60; font-size: 1.3rem; margin-bottom: 8px; }
     .success-banner p  { color: #5c8a6a; font-size: 0.95rem; }
+
+    .error-banner {
+      display: none;
+      background: #fdf0f0;
+      border: 2px solid #e74c3c;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-top: 16px;
+      color: #c0392b;
+      font-size: 0.9rem;
+    }
 
     @media (max-width: 600px) {
       .card, .agreement-footer { padding: 28px 24px; }
@@ -305,22 +323,31 @@
       This document is a personal promise between two people who care about each other.<br/>
       Let it be a turning point — not just words on a screen.
     </p>
-    <button class="btn-submit" onclick="submitAll()">💌 Submit & Seal This Promise</button>
+    <button class="btn-submit" id="submitBtn" onclick="submitAll()">💌 Submit & Seal This Promise</button>
     <div class="success-banner" id="successBanner">
       <h3>💚 Promise Sealed</h3>
-      <p>This apology has been recorded. Now let the healing begin. ❤️‍🩹</p>
+      <p>The apology has been sent and recorded. Now let the healing begin. ❤️‍🩹</p>
+    </div>
+    <div class="error-banner" id="errorBanner">
+      ⚠️ Something went wrong sending the email. Please try again.
     </div>
   </div>
 
 </div>
 
 <script>
-  // Date
-  const now = new Date();
-  document.getElementById('doc-date').textContent =
-    'Date: ' + now.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  // ── Init EmailJS ──
+  emailjs.init('VRqlyUNpLULJgJvod');
 
-  // Signature Pad
+  // ── Date ──
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+  const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('doc-date').textContent = 'Date: ' + dateStr + ' at ' + timeStr;
+
+  // ── Signature Pad ──
   const canvas = document.getElementById('signaturePad');
   const sigPad = new SignaturePad(canvas, {
     backgroundColor: 'rgb(255, 250, 248)',
@@ -353,16 +380,17 @@
     document.getElementById('sig-saved').style.display = 'block';
   }
 
-  // Letter Counter
+  // ── Letter Counter ──
   function updateCounter() {
-    const len = document.getElementById('apologyLetter').value.length;
-    document.getElementById('charCount').textContent = len;
+    document.getElementById('charCount').textContent =
+      document.getElementById('apologyLetter').value.length;
   }
 
-  // Submit
-  function submitAll() {
-    const signed = !sigPad.isEmpty();
-    const letter = document.getElementById('apologyLetter').value.trim();
+  // ── Submit ──
+  async function submitAll() {
+    const signed   = !sigPad.isEmpty();
+    const letter   = document.getElementById('apologyLetter').value.trim();
+    const submitBtn = document.getElementById('submitBtn');
 
     if (!signed) {
       alert('⚠️ A signature is required to seal this promise.');
@@ -373,12 +401,33 @@
       return;
     }
 
-    document.getElementById('successBanner').style.display = 'block';
-    document.querySelector('.btn-submit').disabled = true;
-    document.querySelector('.btn-submit').textContent = '✅ Promise Sealed';
-    document.querySelector('.btn-submit').style.background = '#2ecc71';
+    // Get signature as image
+    const signatureImage = sigPad.toDataURL('image/png');
 
-    document.getElementById('successBanner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Sending...';
+    document.getElementById('errorBanner').style.display = 'none';
+
+    try {
+      await emailjs.send('service_omaa2z1', 'template_h392cjo', {
+        apology_letter:  letter,
+        date:            dateStr + ' at ' + timeStr,
+        signature_image: signatureImage,
+        to_email:        'albube2020@gmail.com'
+      });
+
+      // Success
+      submitBtn.textContent = '✅ Promise Sealed';
+      submitBtn.style.background = '#2ecc71';
+      document.getElementById('successBanner').style.display = 'block';
+      document.getElementById('successBanner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    } catch (err) {
+      console.error('EmailJS error:', err);
+      submitBtn.disabled = false;
+      submitBtn.textContent = '💌 Submit & Seal This Promise';
+      document.getElementById('errorBanner').style.display = 'block';
+    }
   }
 </script>
 
