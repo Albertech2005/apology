@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>A Promise & An Apology</title>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #fdf6f0;
+      color: #3a2a1f;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .header .heart {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 12px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: normal;
+      color: #c0392b;
+      letter-spacing: 1px;
+    }
+    .header p.subtitle {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      color: #7a5c4e;
+      font-style: italic;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px 48px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      border-top: 4px solid #c0392b;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #c0392b;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card h2 .num {
+      background: #c0392b;
+      color: #fff;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    /* ── Promise Text ── */
+    .promise-text {
+      font-size: 1.25rem;
+      line-height: 1.9;
+      color: #2c1a0e;
+      text-align: center;
+      padding: 24px 16px;
+      background: #fff9f7;
+      border-radius: 12px;
+      border: 1px dashed #e8b4a8;
+      font-style: italic;
+      position: relative;
+    }
+    .promise-text::before,
+    .promise-text::after {
+      content: '"';
+      font-size: 4rem;
+      color: #e8b4a8;
+      line-height: 0;
+      vertical-align: -0.6em;
+      font-family: Georgia, serif;
+    }
+    .promise-text::before { margin-right: 4px; }
+    .promise-text::after  { margin-left: 4px; }
+
+    .date-line {
+      margin-top: 20px;
+      text-align: right;
+      font-size: 0.9rem;
+      color: #9e7060;
+      font-style: italic;
+    }
+
+    /* ── Signature ── */
+    .sig-wrapper {
+      border: 2px solid #e8b4a8;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fffaf8;
+      position: relative;
+    }
+    .sig-wrapper canvas {
+      display: block;
+      width: 100%;
+      height: 180px;
+      touch-action: none;
+      cursor: crosshair;
+    }
+    .sig-label {
+      font-size: 0.8rem;
+      color: #b08070;
+      text-align: center;
+      padding: 6px;
+      background: #fff5f2;
+      border-top: 1px solid #f0d0c0;
+    }
+    .sig-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .btn {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 8px;
+      font-family: Georgia, serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-clear {
+      background: #f5e6e0;
+      color: #9e5540;
+    }
+    .btn-clear:hover { background: #ecd0c5; }
+    .btn-save {
+      background: #c0392b;
+      color: #fff;
+    }
+    .btn-save:hover { background: #a93226; }
+    .sig-saved {
+      display: none;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #2ecc71;
+      font-style: italic;
+    }
+
+    /* ── Apology Letter ── */
+    .letter-box {
+      width: 100%;
+      min-height: 220px;
+      border: 2px solid #e8b4a8;
+      border-radius: 10px;
+      padding: 18px;
+      font-family: 'Georgia', serif;
+      font-size: 1rem;
+      color: #3a2a1f;
+      background: #fffaf8;
+      resize: vertical;
+      outline: none;
+      line-height: 1.8;
+      transition: border-color 0.2s;
+    }
+    .letter-box:focus { border-color: #c0392b; }
+    .letter-box::placeholder { color: #c9a090; font-style: italic; }
+
+    .letter-counter {
+      text-align: right;
+      font-size: 0.8rem;
+      color: #b08070;
+      margin-top: 6px;
+    }
+
+    /* ── Agreement Footer ── */
+    .agreement-footer {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px 48px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      text-align: center;
+      border-top: 4px solid #e8b4a8;
+    }
+    .agreement-footer p {
+      font-size: 0.95rem;
+      color: #7a5c4e;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .btn-submit {
+      background: linear-gradient(135deg, #c0392b, #e74c3c);
+      color: #fff;
+      padding: 14px 40px;
+      border: none;
+      border-radius: 50px;
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(192,57,43,0.35);
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(192,57,43,0.45);
+    }
+
+    /* ── Success Banner ── */
+    .success-banner {
+      display: none;
+      background: #eafaf1;
+      border: 2px solid #2ecc71;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .success-banner h3 { color: #27ae60; font-size: 1.3rem; margin-bottom: 8px; }
+    .success-banner p  { color: #5c8a6a; font-size: 0.95rem; }
+
+    @media (max-width: 600px) {
+      .card, .agreement-footer { padding: 28px 24px; }
+      .header h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <span class="heart">💔</span>
+    <h1>A Promise &amp; An Apology</h1>
+    <p class="subtitle">Because love doesn't hurt — and words must become actions.</p>
+  </div>
+
+  <!-- Section 1: The Promise -->
+  <div class="card">
+    <h2><span class="num">1</span> The Promise</h2>
+    <div class="promise-text">
+      Babe, I am so sorry for hitting you. Anytime I touch you again, you have the full right to break up with me forever.
+    </div>
+    <p class="date-line" id="doc-date"></p>
+  </div>
+
+  <!-- Section 2: Her Signature -->
+  <div class="card">
+    <h2><span class="num">2</span> Her Signature</h2>
+    <p style="font-size:0.95rem; color:#7a5c4e; margin-bottom:16px;">
+      By signing below, you acknowledge this promise, accept responsibility for what happened, and commit to never raising your hand again.
+    </p>
+    <div class="sig-wrapper">
+      <canvas id="signaturePad"></canvas>
+    </div>
+    <div class="sig-label">✍️ Sign here with your finger or mouse</div>
+    <div class="sig-actions">
+      <button class="btn btn-clear" onclick="clearSig()">Clear</button>
+      <button class="btn btn-save" onclick="saveSig()">Confirm Signature</button>
+    </div>
+    <p class="sig-saved" id="sig-saved">✅ Signature confirmed.</p>
+  </div>
+
+  <!-- Section 3: Apology Letter -->
+  <div class="card">
+    <h2><span class="num">3</span> Apology Letter</h2>
+    <p style="font-size:0.95rem; color:#7a5c4e; margin-bottom:16px;">
+      Write your apology in your own words. Be honest, be sincere, and be specific about what you did and how you will do better.
+    </p>
+    <textarea
+      class="letter-box"
+      id="apologyLetter"
+      placeholder="Start with 'Dear [his name],' ... Take your time. Write from the heart."
+      oninput="updateCounter()"
+    ></textarea>
+    <p class="letter-counter"><span id="charCount">0</span> characters</p>
+  </div>
+
+  <!-- Agreement Footer -->
+  <div class="agreement-footer">
+    <p>
+      This document is a personal promise between two people who care about each other.<br/>
+      Let it be a turning point — not just words on a screen.
+    </p>
+    <button class="btn-submit" onclick="submitAll()">💌 Submit & Seal This Promise</button>
+    <div class="success-banner" id="successBanner">
+      <h3>💚 Promise Sealed</h3>
+      <p>This apology has been recorded. Now let the healing begin. ❤️‍🩹</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Date
+  const now = new Date();
+  document.getElementById('doc-date').textContent =
+    'Date: ' + now.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Signature Pad
+  const canvas = document.getElementById('signaturePad');
+  const sigPad = new SignaturePad(canvas, {
+    backgroundColor: 'rgb(255, 250, 248)',
+    penColor: '#2c1a0e',
+    minWidth: 1.5,
+    maxWidth: 3
+  });
+
+  function resizeCanvas() {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * ratio;
+    canvas.height = 180 * ratio;
+    canvas.getContext('2d').scale(ratio, ratio);
+    sigPad.clear();
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  function clearSig() {
+    sigPad.clear();
+    document.getElementById('sig-saved').style.display = 'none';
+  }
+
+  function saveSig() {
+    if (sigPad.isEmpty()) {
+      alert('Please sign before confirming.');
+      return;
+    }
+    document.getElementById('sig-saved').style.display = 'block';
+  }
+
+  // Letter Counter
+  function updateCounter() {
+    const len = document.getElementById('apologyLetter').value.length;
+    document.getElementById('charCount').textContent = len;
+  }
+
+  // Submit
+  function submitAll() {
+    const signed = !sigPad.isEmpty();
+    const letter = document.getElementById('apologyLetter').value.trim();
+
+    if (!signed) {
+      alert('⚠️ A signature is required to seal this promise.');
+      return;
+    }
+    if (letter.length < 30) {
+      alert('⚠️ Please write a proper apology letter before submitting.');
+      return;
+    }
+
+    document.getElementById('successBanner').style.display = 'block';
+    document.querySelector('.btn-submit').disabled = true;
+    document.querySelector('.btn-submit').textContent = '✅ Promise Sealed';
+    document.querySelector('.btn-submit').style.background = '#2ecc71';
+
+    document.getElementById('successBanner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+</script>
+
+</body>
+</html>
