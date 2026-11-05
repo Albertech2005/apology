@@ -407,10 +407,9 @@
 
     try {
       await emailjs.send('service_omaa2z1', 'template_h392cjo', {
-        apology_letter:  letter,
-        date:            dateStr + ' at ' + timeStr,
-        signature_status: '✅ Signature was physically drawn and confirmed on the document.',
-        to_email:        'albube2020@gmail.com'
+        apology_letter:   letter,
+        date:             dateStr + ' at ' + timeStr,
+        signature_status: 'Signature was physically drawn and confirmed on the document.'
       });
 
       // Success
